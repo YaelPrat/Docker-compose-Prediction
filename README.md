@@ -2,7 +2,7 @@
 1. start the containers:
     - docker-compose up
 2. enter the postgres server using another container:
-    - docker run -it --rm --network flask_kinan_default postgres psql -h flask_kinan-postgress_server-1 -U postgres
+    - docker run -it --rm --network compose-small-project-main_default postgres psql -h compose-small-project-main-postgress_server-1 -U postgres
 3. create the 'usersdb' database, connect to it and create the 'users' table:
     - create database usersdb;
     - \connect usersdb
