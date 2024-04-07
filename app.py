@@ -1,8 +1,10 @@
 import os
-from flask import Flask, request
+from flask import Flask, request, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+import joblib
 
+model = joblib.load('liner_pikel.pkl')
 db_username = os.environ['DB_USERNAME']
 db_password = os.environ['DB_PASSWORD']
 db_name = os.environ['DB_NAME']
@@ -43,6 +45,38 @@ def show_users():
     for user in users:
         user_list[user.id] = user.name
     return user_list
+
+
+@app.route('/add_predict', methods=['POST', 'GEt'])
+def add_predict():
+    if request.method == 'POST':
+        OSLG = float(request.form['OSLG'])
+        OOBP = float(request.form['OOBP'])
+        Playoffs = float(request.form['Playoffs'])
+        OBP = float(request.form['OBP'])
+        SLG = float(request.form['SLG'])
+        Year = float(request.form['Year'])
+        G = float(request.form['G'])
+        League_NL = float(request.form['League_NL'])
+        BA = float(request.form['BA'])
+
+        res = model.predicte(OSLG,OOBP,Playoffs,OBP,SLG,Year,G,League_NL,BA)
+        print(res)
+    return render_template('add_predict.html')
+
+
+# linreg = linear_regressor_pipe['linear_regression']
+# print(classifier_result(linreg,X_train))
+#                  Coef    Abs_Coef
+# OSLG      -388.416576  388.416576
+# OOBP       381.271937  381.271937
+# Playoffs    45.465001   45.465001
+# OBP         28.525287   28.525287
+# SLG         27.687064   27.687064
+# Year       -26.608461   26.608461
+# G            7.047080    7.047080
+# League_NL    6.710450    6.710450
+# BA          -1.788093    1.788093
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5555)
