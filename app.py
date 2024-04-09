@@ -2,6 +2,7 @@ import os
 from flask import Flask, request, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+import sklearn
 import joblib
 
 model = joblib.load('liner_pikel.pkl')
@@ -60,23 +61,11 @@ def add_predict():
         League_NL = float(request.form['League_NL'])
         BA = float(request.form['BA'])
 
-        res = model.predicte(OSLG,OOBP,Playoffs,OBP,SLG,Year,G,League_NL,BA)
-        print(res)
-    return render_template('add_predict.html')
+        res = model.predict([[Year,OBP,SLG,BA,Playoffs,G,OOBP,OSLG,League_NL]])
+        return render_template('add_predict.html', res = res)
+    return render_template('add_predict.html', res = '')
 
 
-# linreg = linear_regressor_pipe['linear_regression']
-# print(classifier_result(linreg,X_train))
-#                  Coef    Abs_Coef
-# OSLG      -388.416576  388.416576
-# OOBP       381.271937  381.271937
-# Playoffs    45.465001   45.465001
-# OBP         28.525287   28.525287
-# SLG         27.687064   27.687064
-# Year       -26.608461   26.608461
-# G            7.047080    7.047080
-# League_NL    6.710450    6.710450
-# BA          -1.788093    1.788093
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5555)
