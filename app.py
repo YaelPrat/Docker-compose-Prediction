@@ -17,6 +17,8 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 db = SQLAlchemy()
 db.init_app(app)
+
+
 class User(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -25,9 +27,39 @@ class User(db.Model):
     def __init__(self, name):
         self.name = name
 
+
+class ModelPrediction(db.Model):
+    __tablename__ = 'predict'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    oslg = db.Column(db.Float)
+    oobp = db.Column(db.Float)
+    playoffs = db.Column(db.Float)
+    obp = db.Column(db.Float)
+    slg = db.Column(db.Float)
+    year = db.Column(db.Float)
+    g = db.Column(db.Float)
+    league_nl = db.Column(db.Float)
+    ba = db.Column(db.Float)
+    predict = db.Column(db.Float)
+
+    # def __init__(self, OOBP, Playoffs, OBP, SLG, Year, G, League_NL, OSLG, BA, predict):
+    #     self.OOBP = float(OOBP)
+    #     self.OSLG = float(OSLG)
+    #     self.Playoffs = float(Playoffs)
+    #     self.OBP = float(OBP)
+    #     self.SLG = float(SLG)
+    #     self.Year = float(Year)
+    #     self.G = float(G)
+    #     self.League_NL = float(League_NL)
+    #     self.BA = float(BA)
+    #     self.predict = float(predict)
+
+
 @app.route("/")
 def home():
     return "Hello from my Containerized Server"
+
 
 @app.route('/users', methods=['POST'])
 def add_user():
@@ -38,6 +70,7 @@ def add_user():
     db.session.add(new_user)
     db.session.commit()
     return "User added successfully"
+
 
 @app.route('/users')
 def show_users():
@@ -51,20 +84,38 @@ def show_users():
 @app.route('/add_predict', methods=['POST', 'GEt'])
 def add_predict():
     if request.method == 'POST':
-        OSLG = float(request.form['OSLG'])
-        OOBP = float(request.form['OOBP'])
-        Playoffs = float(request.form['Playoffs'])
-        OBP = float(request.form['OBP'])
-        SLG = float(request.form['SLG'])
-        Year = float(request.form['Year'])
-        G = float(request.form['G'])
-        League_NL = float(request.form['League_NL'])
-        BA = float(request.form['BA'])
+        oslg = float(request.form['OSLG'])
+        oobp = float(request.form['OOBP'])
+        playoffs = float(request.form['Playoffs'])
+        obp = float(request.form['OBP'])
+        slg = float(request.form['SLG'])
+        year = float(request.form['Year'])
+        g = float(request.form['G'])
+        league_nl = float(request.form['League_NL'])
+        ba = float(request.form['BA'])
 
-        res = model.predict([[Year,OBP,SLG,BA,Playoffs,G,OOBP,OSLG,League_NL]])
-        return render_template('add_predict.html', res = res)
-    return render_template('add_predict.html', res = '')
+        res = model.predict([[year, obp, slg, ba, playoffs, g, oobp, oslg, league_nl]])
+        db_lst = [year, obp, slg, ba, playoffs, g, oobp, oslg, league_nl, res[0]]
+        save_db(db_lst)
+        return render_template('add_predict.html', res=res[0])
+    return render_template('add_predict.html', res='')
 
+
+def save_db(db_lst):
+    new_prediction = ModelPrediction(
+        year=db_lst[0],
+        obp=db_lst[1],
+        slg=db_lst[2],
+        ba=db_lst[3],
+        playoffs=db_lst[4],
+        g=db_lst[5],
+        oobp=db_lst[6],
+        oslg=db_lst[7],
+        league_nl=db_lst[8],
+        predict=db_lst[9])
+
+    db.session.add(new_prediction)
+    db.session.commit()
 
 
 if __name__ == "__main__":
